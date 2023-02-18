@@ -17,22 +17,32 @@ limitations under the License.
 package v1
 
 import (
+	"time"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // StockReportSpec defines the desired state of StockReport
 type StockReportSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
-	// Foo is an example field of StockReport. Edit stockreport_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// Symbol is the stock symbol eg :- AAPL, GOOGL
+	Symbol string `json:"symbol"`
+	// +optional
+	// RefreshInterval indicates the interval to fetch the latest stock price.
+	// The format should match go duration type eg :- 1ms,1s,1m,1h,1d
+	// Default is set to 60s
+	RefreshInterval string `json:"refreshInterval,omitempty"`
+	// +optional
+	// +kubebuilder:validation:Enum:=yahoo;vantage
+	// +kubebuilder:default=yahoo
+	// Api is the api used to fetch the stock prices.
+	// Default is to yahoo finance
+	Api string `json:"api,omitempty"`
 }
 
 // StockReportStatus defines the observed state of StockReport
 type StockReportStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	LastUpdatedTime time.Duration `json:"lastUpdatedTime,omitempty"`
+	Status          string        `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true

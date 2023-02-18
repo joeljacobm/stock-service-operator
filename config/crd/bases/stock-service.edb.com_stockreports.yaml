@@ -35,13 +35,36 @@ spec:
           spec:
             description: StockReportSpec defines the desired state of StockReport
             properties:
-              foo:
-                description: Foo is an example field of StockReport. Edit stockreport_types.go
-                  to remove/update
+              api:
+                default: yahoo
+                description: Api is the api used to fetch the stock prices. Default
+                  is to yahoo finance
+                enum:
+                - yahoo
+                - vantage
                 type: string
+              refreshInterval:
+                description: RefreshInterval indicates the interval to fetch the latest
+                  stock price. The format should match go duration type eg :- 1ms,1s,1m,1h,1d
+                  Default is set to 60s
+                type: string
+              symbol:
+                description: Symbol is the stock symbol eg :- AAPL, GOOGL
+                type: string
+            required:
+            - symbol
             type: object
           status:
             description: StockReportStatus defines the observed state of StockReport
+            properties:
+              lastUpdatedTime:
+                description: A Duration represents the elapsed time between two instants
+                  as an int64 nanosecond count. The representation limits the largest
+                  representable duration to approximately 290 years.
+                format: int64
+                type: integer
+              status:
+                type: string
             type: object
         type: object
     served: true
