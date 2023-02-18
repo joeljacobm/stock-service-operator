@@ -1,0 +1,12 @@
+apiVersion: stock-service.edb.com/v1
+kind: StockReport
+metadata:
+  labels:
+    app.kubernetes.io/name: stockreport
+    app.kubernetes.io/instance: stockreport-sample
+    app.kubernetes.io/part-of: stock-service-operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: stock-service-operator
+  name: stockreport-sample
+spec:
+  # TODO(user): Add fields here

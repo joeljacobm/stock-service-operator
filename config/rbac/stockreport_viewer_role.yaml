@@ -1,0 +1,27 @@
+# permissions for end users to view stockreports.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: stockreport-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: stock-service-operator
+    app.kubernetes.io/part-of: stock-service-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: stockreport-viewer-role
+rules:
+- apiGroups:
+  - stock-service.edb.com
+  resources:
+  - stockreports
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - stock-service.edb.com
+  resources:
+  - stockreports/status
+  verbs:
+  - get
