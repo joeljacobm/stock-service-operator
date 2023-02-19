@@ -28,7 +28,7 @@ type YahooFinanceResponse struct {
 }
 
 type RegularMarketPrice struct {
-	Raw float64 `json:"raw`
+	Raw float64 `json:"raw"`
 }
 
 func getYahooBackEnd(symbol string, log logr.Logger) *Yahoo {
@@ -69,6 +69,7 @@ func (y *Yahoo) fetchStock() (YahooFinanceResponse, error) {
 	if err != nil {
 		return YahooFinanceResponse{}, err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		return YahooFinanceResponse{}, fmt.Errorf("invalid stock symbol or error with API")

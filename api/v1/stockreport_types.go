@@ -34,7 +34,7 @@ type StockReportSpec struct {
 	// +optional
 	// +kubebuilder:validation:Enum:=yahoo;vantage
 	// +kubebuilder:default=yahoo
-	// Api is the api used to fetch the stock prices.
+	// Api is the finance api used to fetch the stock prices.
 	// Default is to yahoo finance
 	Api string `json:"api,omitempty"`
 }

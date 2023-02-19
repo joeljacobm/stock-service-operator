@@ -3,4 +3,6 @@ kind: StockReport
 metadata:
   name: stockreport-sample
 spec:
-  symbol: AAPL
+  symbol: GOOGL
+  api: vantage
+  refreshInterval: 60s

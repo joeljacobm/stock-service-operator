@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"errors"
+	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -61,10 +62,16 @@ func (r *StockReportReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	price, err := backend.GetStockPrice()
 	if err != nil {
 		log.Error(err, "failed fetching stock price", "symbol", stockReport.Spec.Symbol)
+		return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
 	}
-	log.Info("successflly fetched stock price","symbol",stockReport.Spec.Symbol,"price",price)
+	log.Info("successflly fetched stock price", "symbol", stockReport.Spec.Symbol, "price", price)
 
-	return ctrl.Result{}, nil
+	duration, err := time.ParseDuration(stockReport.Spec.RefreshInterval)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	return ctrl.Result{RequeueAfter: duration}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

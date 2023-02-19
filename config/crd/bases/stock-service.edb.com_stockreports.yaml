@@ -37,8 +37,8 @@ spec:
             properties:
               api:
                 default: yahoo
-                description: Api is the api used to fetch the stock prices. Default
-                  is to yahoo finance
+                description: Api is the finance api used to fetch the stock prices.
+                  Default is to yahoo finance
                 enum:
                 - yahoo
                 - vantage
