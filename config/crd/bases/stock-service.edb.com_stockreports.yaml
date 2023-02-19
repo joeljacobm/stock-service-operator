@@ -44,6 +44,7 @@ spec:
                 - vantage
                 type: string
               refreshInterval:
+                default: 60s
                 description: RefreshInterval indicates the interval to fetch the latest
                   stock price. The format should match go duration type eg :- 1ms,1s,1m,1h,1d
                   Default is set to 60s

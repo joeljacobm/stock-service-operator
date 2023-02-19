@@ -27,6 +27,7 @@ type StockReportSpec struct {
 	// Symbol is the stock symbol eg :- AAPL, GOOGL
 	Symbol string `json:"symbol"`
 	// +optional
+	// +kubebuilder:default="60s"
 	// RefreshInterval indicates the interval to fetch the latest stock price.
 	// The format should match go duration type eg :- 1ms,1s,1m,1h,1d
 	// Default is set to 60s

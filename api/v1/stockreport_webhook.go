@@ -18,10 +18,15 @@ package v1
 
 import (
 	"fmt"
+	"time"
 
 	"edb.com/stock-service/backend"
+	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/util/validation/field"
 
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
@@ -52,27 +57,38 @@ var _ webhook.Validator = &StockReport{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 func (r *StockReport) ValidateCreate() error {
-	stockreportlog.Info("validate create", "name", r.Name)
-
-	if !backend.GetBackend(r.Spec.Api, r.Spec.Symbol, stockreportlog).IsValidSymbol() {
-		return fmt.Errorf("error creating %s due to invalid symbol %s", r.Name, r.Spec.Symbol)
-	}
-
-	return nil
+	return r.ValidateSpec()
 }
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
 func (r *StockReport) ValidateUpdate(old runtime.Object) error {
-	stockreportlog.Info("validate update", "name", r.Name)
-
-	if !backend.GetBackend(r.Spec.Api, r.Spec.Symbol, stockreportlog).IsValidSymbol() {
-		return fmt.Errorf("error updating %s due to invalid symbol %s", r.Name, r.Spec.Symbol)
-	}
-
-	return nil
+	return r.ValidateSpec()
 }
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
 func (r *StockReport) ValidateDelete() error {
 	return nil
+}
+
+func (r *StockReport) ValidateSpec() error {
+	stockreportlog.Info("validating spec", "name", r.Name)
+	var allErrs field.ErrorList
+
+	if r.Spec.RefreshInterval != "" {
+		if _, err := time.ParseDuration(r.Spec.RefreshInterval); err != nil {
+			allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("refreshInterval"), r.Spec.RefreshInterval, errors.Wrap(err, "invalid refreshInterval format. The format should be of type time.Duration (1ms,1s,1m,1h...)").Error()))
+		}
+	}
+
+	if !backend.GetBackend(r.Spec.Api, r.Spec.Symbol, stockreportlog).IsValidSymbol() {
+		allErrs = append(allErrs, field.Invalid(field.NewPath("spec").Child("symbol"), r.Spec.Symbol, fmt.Sprintf("error updating %s due to invalid symbol %s", r.Name, r.Spec.Symbol)))
+	}
+
+	if len(allErrs) == 0 {
+		return nil
+	}
+
+	return apierrors.NewInvalid(
+		schema.GroupKind{Group: r.GroupVersionKind().Group, Kind: r.GroupVersionKind().Kind},
+		r.Name, allErrs)
 }
