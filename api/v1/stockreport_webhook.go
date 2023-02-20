@@ -48,7 +48,6 @@ var _ webhook.Defaulter = &StockReport{}
 // Default implements webhook.Defaulter so a webhook will be registered for the type
 func (r *StockReport) Default() {
 	stockreportlog.Info("default", "name", r.Name)
-
 }
 
 //+kubebuilder:webhook:path=/validate-stock-service-edb-com-v1-stockreport,mutating=false,failurePolicy=fail,sideEffects=None,groups=stock-service.edb.com,resources=stockreports,verbs=create;update,versions=v1,name=vstockreport.kb.io,admissionReviewVersions=v1
