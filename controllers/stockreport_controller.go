@@ -44,6 +44,8 @@ type StockReportReconciler struct {
 //+kubebuilder:rbac:groups=stock-service.edb.com,resources=stockreports,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=stock-service.edb.com,resources=stockreports/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=stock-service.edb.com,resources=stockreports/finalizers,verbs=update
+//+kubebuilder:rbac:groups=*,resources=configmaps,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=*,resources=configmaps/status,verbs=get
 
 func (r *StockReportReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(ctx)
@@ -65,7 +67,10 @@ func (r *StockReportReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	backend := backend.GetBackend(stockReport.Spec.Api, stockReport.Spec.Symbol, log)
 	price, err := backend.GetStockPrice()
 	if err != nil {
-		return ctrl.Result{RequeueAfter: 1 * time.Minute}, fmt.Errorf("failed fetching stock price for symbol %s with error: %s", stockReport.Spec.Symbol, err.Error())
+		return ctrl.Result{}, fmt.Errorf("failed fetching stock price for symbol %s with error: %s", stockReport.Spec.Symbol, err.Error())
+	}
+	if price == "" {
+		return ctrl.Result{}, fmt.Errorf("invalid price for symbol %s", stockReport.Spec.Symbol)
 	}
 	log.Info("successfully retrieved stock price", "symbol", stockReport.Spec.Symbol, "price", price)
 
@@ -74,10 +79,12 @@ func (r *StockReportReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, err
 	}
 
+	cmName := stockReport.Name + "-cm"
+
 	// Create a new ConfigMap with the stock price
 	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      stockReport.Name + "-cm",
+			Name:      cmName,
 			Namespace: stockReport.Namespace,
 		},
 		Data: map[string]string{
@@ -108,6 +115,15 @@ func (r *StockReportReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	} else {
 		// Return an error if we couldn't fetch the ConfigMap
 		return ctrl.Result{}, err
+	}
+
+	stockReport.Status = v1.StockReportStatus{
+		LastRefreshed: metav1.Now(),
+		Status:        "Ready",
+		ConfigMap:     cmName,
+	}
+	if err := r.Status().Update(context.Background(), stockReport); err != nil {
+		return ctrl.Result{}, nil
 	}
 
 	return ctrl.Result{RequeueAfter: duration}, nil

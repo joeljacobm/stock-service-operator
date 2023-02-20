@@ -9,8 +9,7 @@ import (
 )
 
 const (
-	VantageBaseUrl = "https://www.alphavantage.co/query?function"
-	APIKey         = "29ZYEABKJB0MIF3N"
+	APIKey         = "your_vantage_api_key"
 )
 
 type Vantage struct {

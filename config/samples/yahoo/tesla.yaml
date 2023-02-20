@@ -1,0 +1,8 @@
+apiVersion: stock-service.edb.com/v1
+kind: StockReport
+metadata:
+  name: tesla
+spec:
+  symbol: TSLA
+  api: yahoo
+  refreshInterval: 1m

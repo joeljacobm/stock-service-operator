@@ -63,26 +63,31 @@ var _ = Describe("stock report controller", func() {
 
 	It("Should update the configmap when the stock symbol is changed", func() {
 
-		By("updating the stock report object", func() {
-			stockreport.Spec.Symbol = "GOOGL"
-			Expect(k8sClient.Update(ctx, &stockreport)).Should(Succeed())
+		By("getting the stock report object from k8s")
+		stockReportLookupKey := types.NamespacedName{Name: "sample", Namespace: "default"}
 
-			By("checking if the stock symbol has been updated in the config map")
-			configMapLookupKey := types.NamespacedName{Name: "sample-cm", Namespace: "default"}
-			// We'll need to retry getting this newly created config map, given that creation may not immediately happen.
-			cm := &corev1.ConfigMap{}
-			Eventually(func() bool {
-				err := k8sClient.Get(ctx, configMapLookupKey, cm)
-				if err != nil {
-					return false
-				}
-				if cm.Data["stock_symbol"] == "GOOGL" {
-					return true
-				}
+		err := k8sClient.Get(ctx, stockReportLookupKey, &stockreport)
+		Expect(err).NotTo(HaveOccurred())
+
+		By("updating the stock report object")
+		stockreport.Spec.Symbol = "GOOGL"
+		Expect(k8sClient.Update(ctx, &stockreport)).Should(Succeed())
+
+		By("checking if the stock symbol has been updated in the config map")
+		configMapLookupKey := types.NamespacedName{Name: "sample-cm", Namespace: "default"}
+		// We'll need to retry getting this newly created config map, given that creation may not immediately happen.
+		cm := &corev1.ConfigMap{}
+		Eventually(func() bool {
+			err := k8sClient.Get(ctx, configMapLookupKey, cm)
+			if err != nil {
 				return false
-			}, timeout, interval).Should(BeTrue())
-
-		})
+			}
+			if cm.Data["stock_symbol"] == "GOOGL" {
+				return true
+			}
+			return false
+		}, timeout, interval).Should(BeTrue())
 
 	})
+
 })

@@ -15,7 +15,17 @@ spec:
     singular: stockreport
   scope: Namespaced
   versions:
-  - name: v1
+  - additionalPrinterColumns:
+    - jsonPath: .status.configMap
+      name: Config Map
+      type: string
+    - jsonPath: .status.lastRefreshed
+      name: Last Refreshed
+      type: date
+    - jsonPath: .status.status
+      name: Status
+      type: string
+    name: v1
     schema:
       openAPIV3Schema:
         description: StockReport is the Schema for the stockreports API
@@ -58,12 +68,11 @@ spec:
           status:
             description: StockReportStatus defines the observed state of StockReport
             properties:
-              lastUpdatedTime:
-                description: A Duration represents the elapsed time between two instants
-                  as an int64 nanosecond count. The representation limits the largest
-                  representable duration to approximately 290 years.
-                format: int64
-                type: integer
+              configMap:
+                type: string
+              lastRefreshed:
+                format: date-time
+                type: string
               status:
                 type: string
             type: object

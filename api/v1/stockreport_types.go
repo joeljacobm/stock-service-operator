@@ -17,9 +17,8 @@ limitations under the License.
 package v1
 
 import (
-	"time"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // StockReportSpec defines the desired state of StockReport
@@ -42,12 +41,16 @@ type StockReportSpec struct {
 
 // StockReportStatus defines the observed state of StockReport
 type StockReportStatus struct {
-	LastUpdatedTime time.Duration `json:"lastUpdatedTime,omitempty"`
-	Status          string        `json:"status,omitempty"`
+	LastRefreshed v1.Time `json:"lastRefreshed,omitempty"`
+	Status        string  `json:"status,omitempty"`
+	ConfigMap     string  `json:"configMap,omitempty"`
 }
 
-//+kubebuilder:object:root=true
-//+kubebuilder:subresource:status
+// +kubebuilder:object:root=true
+// +kubebuilder:subresource:status
+// +kubebuilder:printcolumn:name="Config Map",type="string",JSONPath=".status.configMap"
+// +kubebuilder:printcolumn:name="Last Refreshed",type="date",JSONPath=".status.lastRefreshed"
+// +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".status.status"
 
 // StockReport is the Schema for the stockreports API
 type StockReport struct {
