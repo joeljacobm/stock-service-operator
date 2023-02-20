@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	APIKey         = "your_vantage_api_key"
+	APIKey = "your_vantage_api_key"
 )
 
 type Vantage struct {
