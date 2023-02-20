@@ -84,7 +84,7 @@ func (r *StockReportReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 			"updateTime":   time.Now().String(),
 			"price":        price,
 			"stock_symbol": stockReport.Spec.Symbol,
-			"api": stockReport.Spec.Api,
+			"api":          stockReport.Spec.Api,
 		},
 	}
 	configMap.SetOwnerReferences([]metav1.OwnerReference{{APIVersion: stockReport.APIVersion, Name: stockReport.Name, Kind: stockReport.Kind, UID: stockReport.GetUID()}})
@@ -95,7 +95,7 @@ func (r *StockReportReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	if err != nil && errors.IsNotFound(err) {
 		// Create the ConfigMap if it doesn't exist
 		if err = r.Create(ctx, configMap); err != nil {
-			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
+			return ctrl.Result{}, err
 
 		}
 	} else if err == nil {
@@ -103,7 +103,7 @@ func (r *StockReportReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		foundConfigMap.Data = configMap.Data
 		err = r.Update(ctx, foundConfigMap)
 		if err != nil {
-			return ctrl.Result{RequeueAfter: 1 * time.Minute}, err
+			return ctrl.Result{}, err
 		}
 	} else {
 		// Return an error if we couldn't fetch the ConfigMap

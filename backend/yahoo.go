@@ -8,12 +8,6 @@ import (
 	"github.com/go-logr/logr"
 )
 
-const (
-	YahooBaseUrl   = "https://query1.finance.yahoo.com/v1/finance/"
-	StockPriceUrl  = "quote?symbols="
-	ValidSymbolUrl = "search?q="
-)
-
 type Yahoo struct {
 	StockReport
 }
