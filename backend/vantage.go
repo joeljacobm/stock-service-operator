@@ -2,8 +2,10 @@ package backend
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/go-logr/logr"
 )
@@ -46,13 +48,22 @@ func (y *Vantage) IsValidSymbol() bool {
 	return true
 }
 
-func (y *Vantage) GetStockPrice() (string, error) {
+func (y *Vantage) GetStockPrice() (float64, error) {
 
 	response, err := y.fetchStock()
 	if err != nil {
-		return "", nil
+		return 0, nil
 	}
-	return response.GlobalQuote.Price, nil
+
+	if response.GlobalQuote.Price == "" {
+		return 0, errors.New("error fetching price from vantage")
+	}
+
+	price, err := strconv.ParseFloat(response.GlobalQuote.Price, 64)
+	if err != nil {
+		return 0, err
+	}
+	return price, nil
 }
 
 func (v *Vantage) fetchStock() (VantageSearchResponse, error) {

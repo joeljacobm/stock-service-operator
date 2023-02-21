@@ -58,7 +58,7 @@ func (r *StockReportReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		// we'll ignore not-found errors, since they can't be fixed by an immediate
 		// requeue (we'll need to wait for a new notification), and we can get them
 		// on deleted requests.
-		return ctrl.Result{}, client.IgnoreNotFound(err)
+		return r.UpdateErrorStatus(stockReport, client.IgnoreNotFound(err))
 	}
 
 	if stockReport.Spec.Symbol == "" {
@@ -67,16 +67,16 @@ func (r *StockReportReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	backend := backend.GetBackend(stockReport.Spec.Api, stockReport.Spec.Symbol, log)
 	price, err := backend.GetStockPrice()
 	if err != nil {
-		return ctrl.Result{}, fmt.Errorf("failed fetching stock price for symbol %s with error: %s", stockReport.Spec.Symbol, err.Error())
+		return r.UpdateErrorStatus(stockReport, fmt.Errorf("failed fetching stock price for symbol %s with error: %s", stockReport.Spec.Symbol, err.Error()))
 	}
-	if price == "" {
-		return ctrl.Result{}, fmt.Errorf("invalid price for symbol %s", stockReport.Spec.Symbol)
+	if price == 0 {
+		return r.UpdateErrorStatus(stockReport, fmt.Errorf("invalid price for symbol %s", stockReport.Spec.Symbol))
 	}
 	log.Info("successfully retrieved stock price", "symbol", stockReport.Spec.Symbol, "price", price)
 
 	duration, err := time.ParseDuration(stockReport.Spec.RefreshInterval)
 	if err != nil {
-		return ctrl.Result{}, err
+		return r.UpdateErrorStatus(stockReport, err)
 	}
 
 	cmName := stockReport.Name + "-cm"
@@ -89,7 +89,7 @@ func (r *StockReportReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		},
 		Data: map[string]string{
 			"updateTime":   time.Now().String(),
-			"price":        price,
+			"price":        fmt.Sprintf("%.3f", price),
 			"stock_symbol": stockReport.Spec.Symbol,
 			"api":          stockReport.Spec.Api,
 		},
@@ -99,22 +99,24 @@ func (r *StockReportReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	// Check if the ConfigMap already exists
 	foundConfigMap := &corev1.ConfigMap{}
 	err = r.Get(ctx, types.NamespacedName{Name: configMap.Name, Namespace: configMap.Namespace}, foundConfigMap)
-	if err != nil && errors.IsNotFound(err) {
+
+	switch {
+	case err != nil && errors.IsNotFound(err):
 		// Create the ConfigMap if it doesn't exist
 		if err = r.Create(ctx, configMap); err != nil {
-			return ctrl.Result{}, err
+			return r.UpdateErrorStatus(stockReport, err)
 
 		}
-	} else if err == nil {
+	case err == nil:
 		// Update the ConfigMap if it already exists
 		foundConfigMap.Data = configMap.Data
 		err = r.Update(ctx, foundConfigMap)
 		if err != nil {
-			return ctrl.Result{}, err
+			return r.UpdateErrorStatus(stockReport, err)
 		}
-	} else {
+	default:
 		// Return an error if we couldn't fetch the ConfigMap
-		return ctrl.Result{}, err
+		return r.UpdateErrorStatus(stockReport, err)
 	}
 
 	stockReport.Status = v1.StockReportStatus{
@@ -123,10 +125,18 @@ func (r *StockReportReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		ConfigMap:     cmName,
 	}
 	if err := r.Status().Update(context.Background(), stockReport); err != nil {
-		return ctrl.Result{}, nil
+		return r.UpdateErrorStatus(stockReport, err)
 	}
 
 	return ctrl.Result{RequeueAfter: duration}, nil
+}
+
+func (r *StockReportReconciler) UpdateErrorStatus(obj *v1.StockReport, err error) (ctrl.Result, error) {
+	obj.Status.Status = "Error"
+	if updateErr := r.Status().Update(context.Background(), obj); updateErr != nil {
+		return ctrl.Result{}, updateErr
+	}
+	return ctrl.Result{}, err
 }
 
 // SetupWithManager sets up the controller with the Manager.

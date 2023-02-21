@@ -15,7 +15,7 @@ type StockReport struct {
 
 type Backend interface {
 	IsValidSymbol() bool
-	GetStockPrice() (string, error)
+	GetStockPrice() (float64, error)
 }
 
 func GetBackend(backend string, symbol string, log logr.Logger) Backend {

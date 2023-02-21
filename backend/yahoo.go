@@ -48,13 +48,14 @@ func (y *Yahoo) IsValidSymbol() bool {
 	return true
 }
 
-func (y *Yahoo) GetStockPrice() (string, error) {
+func (y *Yahoo) GetStockPrice() (float64, error) {
 
 	resp, err := y.fetchStock()
 	if err != nil {
-		return "", err
+		return 0, err
 	}
-	return fmt.Sprintf("%.2f", resp.QuoteSummary.Result[0].Price.RegularMarketPrice.Raw), nil
+	return resp.QuoteSummary.Result[0].Price.RegularMarketPrice.Raw, nil
+
 }
 
 func (y *Yahoo) fetchStock() (YahooFinanceResponse, error) {
