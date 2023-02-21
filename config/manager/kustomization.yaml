@@ -5,4 +5,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: stock-service-operator
-  newTag: tag
+  newTag: dev
