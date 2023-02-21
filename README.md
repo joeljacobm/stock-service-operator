@@ -71,7 +71,7 @@ make test
 ### ValidatingWebhookConfiguration
 Validation webhooks have been setup to validate the symbol and refreshInterval provided in the config, this will prevent customers from creating incorrect configs. 
 
-**Note:** The operator needs to be deployed on the cluster for the webhooks to work. The steps to do this is discussed in the `Running on the cluster` section below.
+**Note:** The operator needs to be deployed on the cluster for the webhooks to work. The steps to do this is discussed in the `Running on the cluster` section below. `ENABLE_WEBHOOKS` env var must be set for validation webhooks to work.
 
 
 Consider the below
@@ -101,6 +101,9 @@ You’ll need a Kubernetes cluster to run against. You can use [KIND](https://si
 
 
 ### Running locally 
+
+It is recommended to run the operator without webhooks locally. Webhooks are enabled or diabled by `ENABLE_WEBHOOKS` env variable.
+
 1. Install the CRDs into the cluster:
 
 ```sh
@@ -115,7 +118,7 @@ make run
 
 ### Running on the cluster
 
-This will run the operator as a pod. Webhooks are enabled by default, it can be disabled by setting `ENABLE_WEBHOOKS` env variable to false in config/manager/manager.yaml. 
+This will run the operator as a pod. Webhooks are enabled by default when running on cluster, it can be disabled by setting `ENABLE_WEBHOOKS` env variable to false in config/manager/manager.yaml. 
 
 1. Build your image:
 
