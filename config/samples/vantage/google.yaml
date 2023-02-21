@@ -1,0 +1,8 @@
+apiVersion: stock-service.edb.com/v1
+kind: StockReport
+metadata:
+  name: google
+spec:
+  symbol: GOOGL
+  api: vantage
+  refreshInterval: 5m

@@ -1,8 +1,8 @@
 apiVersion: stock-service.edb.com/v1
 kind: StockReport
 metadata:
-  name: stockreport-sample
+  name: apple
 spec:
   symbol: AAPL
   api: yahoo
-  refreshInterval: 60s
+  refreshInterval: 1m
